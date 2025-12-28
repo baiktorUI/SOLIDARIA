@@ -140,26 +140,29 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
   };
 
   const getBackgroundColor = (db: number): string => {
-    // Mismo color que el texto pero con 50% de opacidad
+    // Fondo con el mismo color pero con 30% de opacidad para más contraste
     const normalized = db / 200;
     
     if (normalized < 0.33) {
+      // Verde a Amarillo
       const r = Math.round(34 + (234 - 34) * (normalized / 0.33));
       const g = Math.round(197 + (171 - 197) * (normalized / 0.33));
       const b = Math.round(94 + (8 - 94) * (normalized / 0.33));
-      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+      return `rgba(${r}, ${g}, ${b}, 0.3)`;
     } else if (normalized < 0.66) {
+      // Amarillo a Naranja
       const localNorm = (normalized - 0.33) / 0.33;
       const r = Math.round(234 + (249 - 234) * localNorm);
       const g = Math.round(171 + (115 - 171) * localNorm);
       const b = Math.round(8 + (22 - 8) * localNorm);
-      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+      return `rgba(${r}, ${g}, ${b}, 0.3)`;
     } else {
+      // Naranja a Rojo
       const localNorm = (normalized - 0.66) / 0.34;
       const r = Math.round(249 + (239 - 249) * localNorm);
       const g = Math.round(115 + (68 - 115) * localNorm);
       const b = Math.round(22 + (68 - 22) * localNorm);
-      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+      return `rgba(${r}, ${g}, ${b}, 0.3)`;
     }
   };
 
