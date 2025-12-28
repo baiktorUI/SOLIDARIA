@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export const DecibelMeter: React.FC = () => {
+interface DecibelMeterProps {
+  isGloballyActive: boolean;
+}
+
+export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) => {
   const [decibels, setDecibels] = useState<number>(0);
-  const [isActive, setIsActive] = useState<boolean>(false);
-  const [hasPermission, setHasPermission] = useState<boolean>(false);
+  const [isMicActive, setIsMicActive] = useState<boolean>(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -11,44 +14,48 @@ export const DecibelMeter: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      // Cleanup cuando el componente se desmonta
       stopMicrophone();
     };
   }, []);
 
+  // Activar/desactivar micrófono según el estado global
+  useEffect(() => {
+    if (isGloballyActive && !isMicActive) {
+      startMicrophone();
+    } else if (!isGloballyActive && isMicActive) {
+      stopMicrophone();
+    }
+  }, [isGloballyActive]);
+
   const startMicrophone = async () => {
     try {
-      // Solicitar acceso al micrófono
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setHasPermission(true);
 
-      // Crear contexto de audio
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       microphoneRef.current = audioContextRef.current.createMediaStreamSource(stream);
 
-      // Configurar el analizador con menos sensibilidad
+      // Configuración con MUCHA menos sensibilidad
       analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.9; // Más suavizado
+      analyserRef.current.smoothingTimeConstant = 0.95; // Muy suavizado
       microphoneRef.current.connect(analyserRef.current);
 
-      setIsActive(true);
+      setIsMicActive(true);
       measureDecibels();
     } catch (error) {
       console.error('Error al acceder al micrófono:', error);
-      setHasPermission(false);
       alert('No se pudo acceder al micrófono. Por favor, permite el acceso en tu navegador.');
     }
   };
 
   const stopMicrophone = () => {
-    // Cancelar el loop de medición
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
 
-    // Desconectar y cerrar todo
     if (microphoneRef.current) {
+      const stream = microphoneRef.current.mediaStream;
+      stream.getTracks().forEach(track => track.stop());
       microphoneRef.current.disconnect();
       microphoneRef.current = null;
     }
@@ -59,7 +66,7 @@ export const DecibelMeter: React.FC = () => {
     }
 
     analyserRef.current = null;
-    setIsActive(false);
+    setIsMicActive(false);
     setDecibels(0);
   };
 
@@ -69,7 +76,7 @@ export const DecibelMeter: React.FC = () => {
     const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
     analyserRef.current.getByteTimeDomainData(dataArray);
 
-    // Calcular el nivel de amplitud
+    // Calcular amplitud con mucha menos sensibilidad
     let sum = 0;
     for (let i = 0; i < dataArray.length; i++) {
       const normalized = (dataArray[i] - 128) / 128;
@@ -77,101 +84,77 @@ export const DecibelMeter: React.FC = () => {
     }
     const rms = Math.sqrt(sum / dataArray.length);
 
-    // Convertir a decibelios con menos sensibilidad
-    let db = 20 * Math.log10(rms);
+    // Convertir a decibelios con MUCHA menos sensibilidad
+    let db = 20 * Math.log10(rms + 0.001); // +0.001 para evitar log(0)
     
-    // Ajustar el rango con menos sensibilidad (40-100 dB)
-    db = Math.min(100, Math.max(40, Math.round(db + 100)));
+    // Ajustar rango: 50-100 dB (mucho menos sensible)
+    db = Math.min(100, Math.max(50, Math.round(db + 115)));
     
     setDecibels(db);
 
-    // Continuar midiendo
     animationFrameRef.current = requestAnimationFrame(measureDecibels);
   };
 
-  const toggleMicrophone = () => {
-    if (isActive) {
-      stopMicrophone();
-    } else {
-      startMicrophone();
-    }
-  };
-
-  // Función para obtener el color según los decibelios
   const getDecibelColor = (db: number): string => {
-    // Verde: 40-60 dB
-    // Amarillo: 60-75 dB
-    // Naranja: 75-90 dB
-    // Rojo: 90-100 dB
-    if (db < 60) {
+    if (db < 65) {
       return '#22c55e'; // Verde
-    } else if (db < 75) {
+    } else if (db < 80) {
       return '#eab308'; // Amarillo
-    } else if (db < 90) {
+    } else if (db < 92) {
       return '#f97316'; // Naranja
     } else {
       return '#ef4444'; // Rojo
     }
   };
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Activar/desactivar con la tecla 'M'
-      if (event.key.toLowerCase() === 'm') {
-        toggleMicrophone();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isActive]);
-
-  if (!isActive) {
+  if (!isGloballyActive || !isMicActive) {
     return null;
   }
 
-  // Calcular la altura de las barras (0-100%)
-  const barHeight = ((decibels - 40) / 60) * 100; // 40-100 dB mapeado a 0-100%
+  // Calcular altura de barras (50-100 dB mapeado a 0-100%)
+  const barHeight = ((decibels - 50) / 50) * 100;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl z-10">
-      <div className="flex items-end gap-8">
-        {/* Gráfica de barras verticales */}
-        <div className="flex items-end gap-1 h-80">
+    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl z-10 p-8">
+      <div className="flex items-center justify-center gap-6 w-full h-full">
+        {/* Gráfica vertical */}
+        <div className="flex items-end gap-1 h-full max-h-[350px]">
           {[...Array(20)].map((_, index) => {
             const barThreshold = ((index + 1) / 20) * 100;
             const isActive = barHeight >= barThreshold;
             
-            // Color de cada barra según su posición
-            let barColor = '#22c55e'; // Verde por defecto
-            if (index >= 15) barColor = '#ef4444'; // Rojo (75-100%)
-            else if (index >= 10) barColor = '#f97316'; // Naranja (50-75%)
-            else if (index >= 6) barColor = '#eab308'; // Amarillo (30-50%)
+            let barColor = '#22c55e';
+            if (index >= 16) barColor = '#ef4444'; // Rojo (80-100%)
+            else if (index >= 12) barColor = '#f97316'; // Naranja (60-80%)
+            else if (index >= 6) barColor = '#eab308'; // Amarillo (30-60%)
             
             return (
               <div
                 key={index}
-                className="w-3 rounded-t transition-all duration-100"
+                className="w-4 rounded-t transition-all duration-150"
                 style={{
                   height: '100%',
-                  backgroundColor: isActive ? barColor : 'rgba(255, 255, 255, 0.2)',
-                  opacity: isActive ? 1 : 0.3,
+                  backgroundColor: isActive ? barColor : 'rgba(255, 255, 255, 0.15)',
+                  opacity: isActive ? 1 : 0.4,
                 }}
               />
             );
           })}
         </div>
 
-        {/* Número de decibelios */}
-        <div className="text-center">
+        {/* Número */}
+        <div className="text-center flex-shrink-0">
           <div 
-            className="text-[160px] font-bold leading-none"
-            style={{ color: getDecibelColor(decibels) }}
+            className="font-bold leading-none"
+            style={{ 
+              color: getDecibelColor(decibels),
+              fontSize: '120px'
+            }}
           >
             {decibels}
           </div>
           <div 
-            className="text-5xl mt-2 font-semibold"
+            className="text-4xl font-semibold mt-2"
             style={{ color: getDecibelColor(decibels) }}
           >
             dB

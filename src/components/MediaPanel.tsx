@@ -6,9 +6,10 @@ import { DecibelMeter } from './DecibelMeter';
 interface MediaPanelProps {
   currentNumber: number | null;
   showQuinaMessage: boolean;
+  isMeterActive: boolean;
 }
 
-export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuinaMessage }) => {
+export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuinaMessage, isMeterActive }) => {
   const [content, setContent] = useState<BingoNumber | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -126,7 +127,7 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
                 </div>
               )}
               {/* Medidor de decibelios solo cuando hay imagen */}
-              <DecibelMeter />
+              <DecibelMeter isGloballyActive={isMeterActive} />
             </>
           )}
         </>
