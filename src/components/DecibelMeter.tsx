@@ -36,8 +36,8 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
       microphoneRef.current = audioContextRef.current.createMediaStreamSource(stream);
 
       // Configuración con MUCHA menos sensibilidad
-      analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.10;
+      analyserRef.current.fftSize = 1048;
+      analyserRef.current.smoothingTimeConstant = 1.90;
       microphoneRef.current.connect(analyserRef.current);
 
       setIsMicActive(true);
