@@ -37,16 +37,16 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
 
       // Configuración más sensible
       analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.85;
+      analyserRef.current.smoothingTimeConstant = 0.8;
       microphoneRef.current.connect(analyserRef.current);
 
       setIsMicActive(true);
-
-      // Actualizar cada 2 segundos
+      
+      // Actualizar cada 0.5 segundos (500ms)
       updateIntervalRef.current = window.setInterval(() => {
         measureDecibels();
       }, 500);
-
+      
       // Primera medición inmediata
       measureDecibels();
     } catch (error) {
@@ -84,7 +84,7 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
     const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
     analyserRef.current.getByteTimeDomainData(dataArray);
 
-    // Calcular amplitud
+    // Calcular amplitud RMS
     let sum = 0;
     for (let i = 0; i < dataArray.length; i++) {
       const normalized = (dataArray[i] - 128) / 128;
@@ -92,22 +92,30 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
     }
     const rms = Math.sqrt(sum / dataArray.length);
 
-    // Convertir a decibelios estándar
+    // Convertir a decibelios con mejor calibración
     // Fórmula estándar: dB = 20 * log10(rms)
-    // Ajustamos para rango 0-200 dB
-    let db = 20 * Math.log10(rms + 0.00001);
-
-    // Mapear a escala 0-200 dB (más sensible)
-    db = db + 94; // Offset para calibración
-    db = Math.min(200, Math.max(0, Math.round(db)));
-
+    let db;
+    
+    if (rms < 0.0001) {
+      // Silencio absoluto
+      db = 0;
+    } else {
+      db = 20 * Math.log10(rms);
+      
+      // Mejor calibración: ajustar offset para que silencio sea ~0-10 dB
+      db = db + 60; // Offset reducido para mejor calibración
+      
+      // Limitar rango 0-200 dB
+      db = Math.min(200, Math.max(0, Math.round(db)));
+    }
+    
     setDecibels(db);
   };
 
   const getDecibelColor = (db: number): string => {
     // Interpolación de verde a rojo para rango 0-200
     const normalized = db / 200; // 0 a 1
-
+    
     if (normalized < 0.33) {
       // Verde a Amarillo
       const r = Math.round(34 + (234 - 34) * (normalized / 0.33));
@@ -138,17 +146,17 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl z-10">
       <div className="text-center">
-        <div
-          className="font-bold leading-none transition-colors duration-500"
-          style={{
+        <div 
+          className="font-bold leading-none transition-colors duration-300"
+          style={{ 
             color: getDecibelColor(decibels),
             fontSize: '140px'
           }}
         >
           {decibels}
         </div>
-        <div
-          className="text-4xl font-semibold mt-2 transition-colors duration-500"
+        <div 
+          className="text-4xl font-semibold mt-2 transition-colors duration-300"
           style={{ color: getDecibelColor(decibels) }}
         >
           dB
