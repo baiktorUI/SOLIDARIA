@@ -89,8 +89,8 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
       {currentNumber && content ? (
         <>
           {imageError ? (
-            // Mostrar solo fondo negro si la imagen no se encuentra
-            <div className="w-full h-full bg-black rounded-2xl"></div>
+            // Mostrar fondo transparente si la imagen no se encuentra
+            <div className="w-full h-full rounded-2xl"></div>
           ) : (
             <>
               <img
