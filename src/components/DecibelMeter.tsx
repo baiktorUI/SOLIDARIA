@@ -37,16 +37,16 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
 
       // Configuración con MUCHA menos sensibilidad
       analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.98;
+      analyserRef.current.smoothingTimeConstant = 0.58;
       microphoneRef.current.connect(analyserRef.current);
 
       setIsMicActive(true);
-      
-      // Actualizar cada 2 segundos
+
+      // Actualizar cada 1 segundos
       updateIntervalRef.current = window.setInterval(() => {
         measureDecibels();
-      }, 2000);
-      
+      }, 1000);
+
       // Primera medición inmediata
       measureDecibels();
     } catch (error) {
@@ -94,17 +94,17 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
 
     // Convertir a decibelios con poca sensibilidad
     let db = 20 * Math.log10(rms + 0.001);
-    
+
     // Ajustar rango: 50-100 dB
     db = Math.min(100, Math.max(50, Math.round(db + 120)));
-    
+
     setDecibels(db);
   };
 
   const getDecibelColor = (db: number): string => {
     // Interpolación de verde a rojo
     const normalized = (db - 50) / 50; // 0 a 1
-    
+
     if (normalized < 0.33) {
       // Verde a Amarillo
       const r = Math.round(34 + (234 - 34) * (normalized / 0.33));
@@ -135,16 +135,16 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl z-10">
       <div className="text-center">
-        <div 
+        <div
           className="font-bold leading-none transition-colors duration-500"
-          style={{ 
+          style={{
             color: getDecibelColor(decibels),
             fontSize: '140px'
           }}
         >
           {decibels}
         </div>
-        <div 
+        <div
           className="text-4xl font-semibold mt-2 transition-colors duration-500"
           style={{ color: getDecibelColor(decibels) }}
         >
