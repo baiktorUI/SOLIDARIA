@@ -37,7 +37,7 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
 
       // Configuración con MUCHA menos sensibilidad
       analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.58;
+      analyserRef.current.smoothingTimeConstant = 0.10;
       microphoneRef.current.connect(analyserRef.current);
 
       setIsMicActive(true);
@@ -45,7 +45,7 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
       // Actualizar cada 1 segundos
       updateIntervalRef.current = window.setInterval(() => {
         measureDecibels();
-      }, 1000);
+      }, 500);
 
       // Primera medición inmediata
       measureDecibels();
