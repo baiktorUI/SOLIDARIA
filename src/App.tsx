@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const [showQuinaMessage, setShowQuinaMessage] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [enterEnabled, setEnterEnabled] = useState(true);
-  const [isMeterActive, setIsMeterActive] = useState(false); // Estado global del medidor
+  const [isMeterActive, setIsMeterActive] = useState(false);
 
   const numberStore = useNumberStore();
   const fireworksIntervalRef = useRef<number | null>(null);
@@ -32,6 +32,7 @@ const App: React.FC = () => {
       numberStore.reset();
       setCurrentNumber(null);
       setPreviousNumbers([]);
+      setIsMeterActive(false); // Desactivar medidor al resetear
       return;
     }
 
@@ -39,6 +40,11 @@ const App: React.FC = () => {
     setPreviousNumbers(prev => [nextNumber, ...prev]);
     setAnimate(true);
     setTimeout(() => setAnimate(false), 500);
+    
+    // Activar medidor automáticamente con el primer número
+    if (!isMeterActive && previousNumbers.length === 0) {
+      setIsMeterActive(true);
+    }
   };
 
   useEffect(() => {
@@ -54,13 +60,13 @@ const App: React.FC = () => {
         setEnterEnabled(prev => !prev);
       }
       if (event.key.toLowerCase() === 'm') {
-        setIsMeterActive(prev => !prev); // Toggle global del medidor
+        setIsMeterActive(prev => !prev); // Toggle manual del medidor
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [enterEnabled]);
+  }, [enterEnabled, previousNumbers.length]);
 
   useEffect(() => {
     if (showLiniaCantada) {
