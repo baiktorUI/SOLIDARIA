@@ -12,6 +12,7 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [imageError, setImageError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
       setContent(bingoContent[currentNumber]);
       setProgress(0);
       setDuration(0);
+      setImageError(false); // Reset image error state
 
       // Create new audio element
       const audio = new Audio(bingoContent[currentNumber].song);
@@ -69,6 +71,11 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const handleImageError = () => {
+    setImageError(true);
+    setIsLoading(false);
+  };
+
   if (showQuinaMessage) {
     return (
       <div className="video-box">
@@ -81,35 +88,43 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
     <div className="video-box">
       {currentNumber && content ? (
         <>
-          <img
-            src={content.image}
-            alt={`Número ${currentNumber}`}
-            className="w-full h-full object-cover rounded-2xl"
-            onLoad={() => setIsLoading(false)}
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-50">
-            <div className="flex items-center gap-2">
-              <div className="text-xs text-white font-medium">
-                {formatTime(progress)}
+          {imageError ? (
+            // Mostrar solo fondo negro si la imagen no se encuentra
+            <div className="w-full h-full bg-black rounded-2xl"></div>
+          ) : (
+            <>
+              <img
+                src={content.image}
+                alt={`Número ${currentNumber}`}
+                className="w-full h-full object-cover rounded-2xl"
+                onLoad={() => setIsLoading(false)}
+                onError={handleImageError}
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-black bg-opacity-50">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-white font-medium">
+                    {formatTime(progress)}
+                  </div>
+                  <div className="flex-1 h-2 bg-white bg-opacity-20 rounded">
+                    <div 
+                      className="h-full bg-white rounded transition-all duration-100"
+                      style={{ 
+                        width: `${(progress / duration) * 100}%`,
+                        transition: 'width 0.1s linear'
+                      }}
+                    />
+                  </div>
+                  <div className="text-xs text-white font-medium">
+                    {formatTime(duration)}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 h-2 bg-white bg-opacity-20 rounded">
-                <div 
-                  className="h-full bg-white rounded transition-all duration-100"
-                  style={{ 
-                    width: `${(progress / duration) * 100}%`,
-                    transition: 'width 0.1s linear'
-                  }}
-                />
-              </div>
-              <div className="text-xs text-white font-medium">
-                {formatTime(duration)}
-              </div>
-            </div>
-          </div>
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
-            </div>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+                </div>
+              )}
+            </>
           )}
         </>
       ) : null}
