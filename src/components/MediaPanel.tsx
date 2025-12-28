@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { bingoContent } from '../data/bingoContent';
 import type { BingoNumber } from '../data/types';
+import { DecibelMeter } from './DecibelMeter';
 
 interface MediaPanelProps {
   currentNumber: number | null;
@@ -126,6 +127,8 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
               )}
             </>
           )}
+          {/* Medidor de decibelios sobrepuesto */}
+          <DecibelMeter />
         </>
       ) : null}
     </div>
