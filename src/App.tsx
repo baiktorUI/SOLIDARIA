@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [showQuinaMessage, setShowQuinaMessage] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [enterEnabled, setEnterEnabled] = useState(true);
+  const [isMeterActive, setIsMeterActive] = useState(false); // Estado global del medidor
 
   const numberStore = useNumberStore();
   const fireworksIntervalRef = useRef<number | null>(null);
@@ -51,6 +52,9 @@ const App: React.FC = () => {
       if (event.key.toLowerCase() === 'q') {
         setShowQuinaMessage(prev => !prev);
         setEnterEnabled(prev => !prev);
+      }
+      if (event.key.toLowerCase() === 'm') {
+        setIsMeterActive(prev => !prev); // Toggle global del medidor
       }
     };
 
@@ -111,6 +115,7 @@ const App: React.FC = () => {
       <MediaPanel
         currentNumber={currentNumber}
         showQuinaMessage={showQuinaMessage}
+        isMeterActive={isMeterActive}
       />
 
       <div className={`large-box ${showQuinaMessage ? 'highlight' : ''}`}>
