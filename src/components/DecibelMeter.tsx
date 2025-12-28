@@ -139,43 +139,18 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
     }
   };
 
-  const getBackgroundColor = (db: number): string => {
-    // Fondo con el mismo color pero con 30% de opacidad para más contraste
-    const normalized = db / 200;
-    
-    if (normalized < 0.33) {
-      // Verde a Amarillo
-      const r = Math.round(34 + (234 - 34) * (normalized / 0.33));
-      const g = Math.round(197 + (171 - 197) * (normalized / 0.33));
-      const b = Math.round(94 + (8 - 94) * (normalized / 0.33));
-      return `rgba(${r}, ${g}, ${b}, 0.3)`;
-    } else if (normalized < 0.66) {
-      // Amarillo a Naranja
-      const localNorm = (normalized - 0.33) / 0.33;
-      const r = Math.round(234 + (249 - 234) * localNorm);
-      const g = Math.round(171 + (115 - 171) * localNorm);
-      const b = Math.round(8 + (22 - 8) * localNorm);
-      return `rgba(${r}, ${g}, ${b}, 0.3)`;
-    } else {
-      // Naranja a Rojo
-      const localNorm = (normalized - 0.66) / 0.34;
-      const r = Math.round(249 + (239 - 249) * localNorm);
-      const g = Math.round(115 + (68 - 115) * localNorm);
-      const b = Math.round(22 + (68 - 22) * localNorm);
-      return `rgba(${r}, ${g}, ${b}, 0.3)`;
-    }
-  };
-
   if (!isGloballyActive || !isMicActive) {
     return null;
   }
 
+  const percentage = Math.min(100, (decibels / 200) * 100);
+
   return (
     <div 
-      className="absolute inset-0 flex items-center justify-center rounded-2xl z-10 transition-colors duration-300"
-      style={{ backgroundColor: getBackgroundColor(decibels) }}
+      className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
     >
-      <div className="text-center">
+      <div className="text-center mb-8">
         <div 
           className="font-bold leading-none transition-colors duration-300"
           style={{ 
@@ -190,6 +165,22 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
           style={{ color: getDecibelColor(decibels) }}
         >
           dB
+        </div>
+      </div>
+
+      {/* Barra de progreso horizontal */}
+      <div className="w-full px-8">
+        <div 
+          className="h-[10px] rounded-full overflow-hidden"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+        >
+          <div 
+            className="h-full transition-all duration-300 rounded-full"
+            style={{ 
+              width: `${percentage}%`,
+              backgroundColor: getDecibelColor(decibels)
+            }}
+          />
         </div>
       </div>
     </div>
