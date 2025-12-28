@@ -90,7 +90,7 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
       {currentNumber && content ? (
         <>
           {imageError ? (
-            // Mostrar fondo transparente si la imagen no se encuentra
+            // Mostrar fondo transparente si la imagen no se encuentra (SIN medidor)
             <div className="w-full h-full rounded-2xl"></div>
           ) : (
             <>
@@ -125,10 +125,10 @@ export const MediaPanel: React.FC<MediaPanelProps> = ({ currentNumber, showQuina
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
                 </div>
               )}
+              {/* Medidor de decibelios solo cuando hay imagen */}
+              <DecibelMeter />
             </>
           )}
-          {/* Medidor de decibelios sobrepuesto */}
-          <DecibelMeter />
         </>
       ) : null}
     </div>
