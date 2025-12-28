@@ -139,12 +139,39 @@ export const DecibelMeter: React.FC<DecibelMeterProps> = ({ isGloballyActive }) 
     }
   };
 
+  const getBackgroundColor = (db: number): string => {
+    // Mismo color que el texto pero con 50% de opacidad
+    const normalized = db / 200;
+    
+    if (normalized < 0.33) {
+      const r = Math.round(34 + (234 - 34) * (normalized / 0.33));
+      const g = Math.round(197 + (171 - 197) * (normalized / 0.33));
+      const b = Math.round(94 + (8 - 94) * (normalized / 0.33));
+      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+    } else if (normalized < 0.66) {
+      const localNorm = (normalized - 0.33) / 0.33;
+      const r = Math.round(234 + (249 - 234) * localNorm);
+      const g = Math.round(171 + (115 - 171) * localNorm);
+      const b = Math.round(8 + (22 - 8) * localNorm);
+      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+    } else {
+      const localNorm = (normalized - 0.66) / 0.34;
+      const r = Math.round(249 + (239 - 249) * localNorm);
+      const g = Math.round(115 + (68 - 115) * localNorm);
+      const b = Math.round(22 + (68 - 22) * localNorm);
+      return `rgba(${r}, ${g}, ${b}, 0.5)`;
+    }
+  };
+
   if (!isGloballyActive || !isMicActive) {
     return null;
   }
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl z-10">
+    <div 
+      className="absolute inset-0 flex items-center justify-center rounded-2xl z-10 transition-colors duration-300"
+      style={{ backgroundColor: getBackgroundColor(decibels) }}
+    >
       <div className="text-center">
         <div 
           className="font-bold leading-none transition-colors duration-300"
