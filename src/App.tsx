@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Logo } from './components/Logo';
 import { BingoBoard } from './components/BingoBoard';
 import { MediaPanel } from './components/MediaPanel';
+import { MusicProgressBar } from './components/MusicProgressBar';
 import { launchFireworks, launchSchoolPride, stopConfetti } from './utils/confetti';
 import { useNumberStore } from './utils/numberGenerator';
 import './index.css';
@@ -32,7 +33,7 @@ const App: React.FC = () => {
       numberStore.reset();
       setCurrentNumber(null);
       setPreviousNumbers([]);
-      setIsMeterActive(false); // Desactivar medidor al resetear
+      setIsMeterActive(false);
       return;
     }
 
@@ -41,7 +42,6 @@ const App: React.FC = () => {
     setAnimate(true);
     setTimeout(() => setAnimate(false), 500);
     
-    // Activar medidor automáticamente con el primer número
     if (!isMeterActive && previousNumbers.length === 0) {
       setIsMeterActive(true);
     }
@@ -60,7 +60,7 @@ const App: React.FC = () => {
         setEnterEnabled(prev => !prev);
       }
       if (event.key.toLowerCase() === 'm') {
-        setIsMeterActive(prev => !prev); // Toggle manual del medidor
+        setIsMeterActive(prev => !prev);
       }
     };
 
@@ -142,6 +142,9 @@ const App: React.FC = () => {
           )
         )}
       </div>
+
+      {/* Barra de progrés musical */}
+      <MusicProgressBar markedNumbers={previousNumbers} />
     </div>
   );
 };
