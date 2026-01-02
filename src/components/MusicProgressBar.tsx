@@ -7,8 +7,7 @@ interface MusicProgressBarProps {
 
 export const MusicProgressBar: React.FC<MusicProgressBarProps> = ({ markedNumbers }) => {
   // Comptar quants números amb música s'han marcat
-  const musicNumbersArray = Array.from(MUSIC_NUMBERS).sort((a, b) => a - b);
-  const totalMusicNumbers = musicNumbersArray.length;
+  const totalMusicNumbers = MUSIC_NUMBERS.size;
   
   const markedMusicCount = markedNumbers.filter(num => MUSIC_NUMBERS.has(num)).length;
   const percentage = (markedMusicCount / totalMusicNumbers) * 100;
@@ -22,7 +21,7 @@ export const MusicProgressBar: React.FC<MusicProgressBarProps> = ({ markedNumber
         zIndex: 1000
       }}
     >
-      {/* Barra de progrés */}
+      {/* Barra de progrés - s'omple de baix a dalt */}
       <div 
         className="w-full bg-gradient-to-t from-green-400 via-green-500 to-green-600 transition-all duration-500 ease-out absolute bottom-0 rounded-full"
         style={{ 
@@ -36,26 +35,6 @@ export const MusicProgressBar: React.FC<MusicProgressBarProps> = ({ markedNumber
             className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent opacity-30"
           />
         )}
-      </div>
-
-      {/* Marques opcionals per cada número amb música */}
-      <div className="absolute inset-0 flex flex-col justify-between py-2">
-        {musicNumbersArray.map((num, index) => {
-          const isMarked = markedNumbers.includes(num);
-          return (
-            <div 
-              key={num}
-              className="flex-1 border-t border-white border-opacity-10 relative"
-            >
-              {isMarked && (
-                <div 
-                  className="absolute inset-0 bg-green-400 opacity-80"
-                  style={{ animation: 'pulse 0.5s ease-in-out' }}
-                />
-              )}
-            </div>
-          );
-        })}
       </div>
     </div>
   );
